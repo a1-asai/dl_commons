@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dl_commons"
+version = "0.1.0"
+description = "請求書自動DLシステム関連の共通処理ライブラリ"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "あなたの名前", email = "you@example.com"}
+]
+dependencies = [
+    "chardet",
+    "gspread",
+    "openpyxl",
+    "pandas",
+    "pydata_google_auth",
+    "python-dateutil",
+    "google-auth",
+    "selenium",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "build", "twine"]
+
+[project.urls]
+Homepage = "https://github.com/a1-asai/dl_commons"
+
+[tool.setuptools.packages.find]
+where = ["src"]

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+.venv/
+
+# 本番用の実credentialが入ったconfigは管理しない想定
+# （プレースホルダー版のみコミットする場合はこの行をコメントアウト）
+# src/dl_commons/seikyudl_config.ini
