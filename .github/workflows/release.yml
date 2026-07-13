@@ -41,8 +41,8 @@ jobs:
 
       - name: Update simple index
         run: |
-          mkdir -p docs/simple/dl_commons
-          INDEX=docs/simple/dl_commons/index.html
+          mkdir -p docs/simple/dl-commons
+          INDEX=docs/simple/dl-commons/index.html
           WHEEL_NAME=$(basename dist/*.whl)
           DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${WHEEL_NAME}"
 
