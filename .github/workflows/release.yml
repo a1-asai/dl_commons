@@ -1,0 +1,66 @@
+name: Build and Publish to Simple Index
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build tool
+        run: pip install build
+
+      - name: Build wheel
+        run: python -m build
+
+      - name: Get version from tag
+        id: get_version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release and upload wheel
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.whl
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+
+      - name: Update simple index
+        run: |
+          mkdir -p docs/simple/dl_commons
+          INDEX=docs/simple/dl_commons/index.html
+          WHEEL_NAME=$(basename dist/*.whl)
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/${WHEEL_NAME}"
+
+          # index.htmlが無ければ初期化
+          if [ ! -f "$INDEX" ]; then
+            echo "<!DOCTYPE html><html><body>" > "$INDEX"
+            echo "</body></html>" >> "$INDEX"
+          fi
+
+          # 既に同じリンクが無ければ </body> の直前に追加
+          if ! grep -q "$WHEEL_NAME" "$INDEX"; then
+            sed -i "s|</body>|<a href=\"${DOWNLOAD_URL}\">${WHEEL_NAME}</a><br>\n</body>|" "$INDEX"
+          fi
+
+      - name: Commit and push docs update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/simple/
+          git diff --cached --quiet || git commit -m "Update simple index for ${{ github.ref_name }}"
+          git push origin HEAD:main
