@@ -72,6 +72,18 @@ _latched_taisho = False
 
 # function
 # downloadFile
+
+
+def has_any_success_record(sheet_title):
+    """このシートで過去に一度でも成功実績(.dateファイル)があるか"""
+    date_dir = ".//..//date//"
+    if not os.path.isdir(date_dir):
+        return False
+    for fname in os.listdir(date_dir):
+        if fname.startswith(sheet_title) and fname.endswith(".date"):
+            return True
+    return False
+
 def getSEIKYU_OUT_BASEPATH_Temp(gyoshamei):
 
     if "オムロン検収結果書" in gyoshamei:
@@ -315,6 +327,20 @@ def convertSVPath(win_path):
     return s
 
 def rename(oldf, sheetName, outPath, newf, Flg=True):
+    t0 = time.time()
+    oldFile = oldf
+    nowFile = (chkFolder(outPath, sheetName) + "//" + newf)
+    if os.path.exists(nowFile):
+        os.remove(nowFile)
+    if Flg:
+        shutil.move(oldFile, nowFile)
+    else:
+        shutil.copyfile(oldFile, nowFile)
+    dt = time.time() - t0
+    if dt > 3:
+        print(f"[SLOW rename] {dt:.1f}s : {nowFile}")
+
+def QQQrename(oldf, sheetName, outPath, newf, Flg=True):
 
     oldFile = oldf
     nowFile = (chkFolder(outPath, sheetName) + "//" + newf)
@@ -807,28 +833,25 @@ def NNNNisApprobe(datefileName, seikyu_date_str, flg=False):
     return True
 
 ##############################################################################
-
-
 def isApprobe(datefileName, seikyu_date, flg=False):
-
-    rtn = False
+    """»èÌÝB±±ÅÍ®¹L^ð©È¢B"""
     if os.path.isfile(".//..//date//" + datefileName) == False:
-        writeDate(seikyu_date.strftime('%Y/%m/%d'), datefileName)
-        rtn = True
-    else:
-        file_date_str = readDate(".//..//date//" + datefileName)
-        file_date_str = file_date_str.replace('\n', '')
-        zenkai_date = datetime.datetime.strptime(file_date_str, '%Y/%m/%d')
-        if flg == False:
-            if seikyu_date > zenkai_date:
-                rtn = True
-        else:
-            if seikyu_date >= zenkai_date:
-                rtn = True
-    #return rtn
-    return True
-# function
-# read ini file
+        return True
+    file_date_str = readDate(".//..//date//" + datefileName).replace('\n', '')
+    zenkai_date = datetime.datetime.strptime(file_date_str, '%Y/%m/%d')
+    if flg == False:
+        return seikyu_date > zenkai_date
+    return seikyu_date >= zenkai_date
+
+
+def write_row_log(gyoshamei, sheet_title, row_i, shitenNo, kokyakuNo, status, msg=""):
+    now = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
+    line = f"{now} [{status}] sheet={sheet_title} row={row_i} shiten={shitenNo} kokyaku={kokyakuNo}"
+    if msg:
+        line += f" : {msg}"
+    write_okyakuno_txt(gyoshamei, line)
+
+
 def readDate(filename):
 
     if os.path.isfile(filename):
